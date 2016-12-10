@@ -9,22 +9,32 @@ Exposing to the local food is one of the most efficient and interesting way to t
 Use recipe ingredients to categorize the cuisine
 
 ## Solution 1: Decision Tree
-Since among all recipes in the TRAIN set, Italian food is the most popular type followed by Mexican food. As a result, it is reasonable to set the benchmark as “all recipes in the TEST set are Italian food”. 
-Before prediction, we need to clean the raw data imported as “train_raw” and “test_raw” to make them readable in R environment by converting characters to lower-case and allowing the existence of dash, regular character, and space. 
-Then, we can create the data frame for decision tree by constructing a simple document-term matrix for frequently occurring ingredients. In addition, the sparse terms whose frequency of occurrence is lower than 0.5% are removed. After creating simple features, this newly processed data is split into TRAIN and TEST sets as “dtm_train” and “dtm_test” to build the model.
-The submission of the final csv final with predicted category of cuisines to Kaggle gives us the score of 0.40185, which indicates that 40.19% of the cuisines in TEST set are correctly classified. This result is not satisfactory enough since the model simply classify cuisines according to the most important ingredients. As shown in the plotted tree, the categories of cuisines are limited to Italian, Mexican, Chinese, Indian, and Southern US, which definitely not include all different kinds of cuisines existing in the TEST set. This may explain its mediocre performance in accuracy. However, the model of decision tree does go beyond the benchmark and provide a solid foundation to explore more advanced models.
+- Benchmark: all recipes in the TEST set are Italian food, since Italian food is the most popular type among all recipes in the TRAIN set
+- Cleansing
+  - convert characters to lower-case
+  - allow the existence of dash, regular character, and space
+- Create data frame for decision tree by constructing a simple document-term matrix for frequently occurring ingredients
+- Remove sparse terms with frequency of occurrence is lower than 0.5%
+- Split the newly created data as train and test sets to build model
+- Accuracy 40.19%: the categories of cuisines are limited to Italian, Mexican, Chinese, Indian, and Southern US, which definitely not include all different kinds of cuisines existing in the TEST set
 
 ## Solution 2: Xgboost
-To improve accuracy, xgboost as an efficient implementation of extreme gradient boosting may help. By importing the R package xgboost based on the above model of decision tree through “library (xgboost)”, we can build an advanced classification model with both linear programming solver and tree learning algorithms. Following the similar steps, we clean the data, create the data frame, add a simple feature of counting the ingredients, assign “Italian” to all cuisines in the TEST set, and split the DTM to get the new “dtm_train” and “dtm_test”. 
-By setting “dtm_train” as a matrix input of the model, the maximum depth of the tree as 25, the size of each boosting step as 0.3, the maximum number of iterations as 200, the objective of softmax, and the upper limit of the number of classes as 20, we can construct an advanced model with xgboost to process multiclass classification. 
-According to submitted result, 78.96% of the categories of the recipes are correctly predicted, which indicates that this model is definitely improved with the help of xgboost. 
+- Advanced classification model with both linear programming solver and tree learning algorithms
+- Set “dtm_train” as a matrix input of the model
+  - Maximum depth of the tree = 25
+  - Size of each boosting step = 0.3
+  - Maximum number of iterations  = 200
+  - Objective: softmax
+  - Upper limit of the number of classes = 20
+- Accuracy: 78.96%
 
 ## Solution 3: Logistic Regression
-The higher flexibility Linear SVC can provide since we can choose wider range of penalties and loss functions makes the model the most applicable in this case. We can utilize this flexibility to return a best fit of categorizing the TEST set by fitting the TRAIN set. To increase accuracy, the technic of lemmatization is also imported in this model to refine information. Firstly, we should load appropriate Python libraries and import JSON data file. 
-Then, we can clean the raw data as we did in R for further modelling. In both data sets, we join together the string in the column ingredients, separate them using comma, and add space at the beginning and the end of the string. In addition, referring to WordNet, we make Python to return a proper word as lemma through vocabulary analysis to eliminate verbose inflectional endings. Regular expression is set as a condition and regular characters are replaced with space. 
-After creating a corpus, through the commend “TfidVectorizer”, we can convert a collection of raw data, namely the corpus we just created, using TRAIN set in this case, to a matrix of TF-IDF features. By setting the stop_words as “English”, we want Python to return the appropriate stop list when coming across a string and “English” is the only supported string value. The lower and upper limits of the range of n-values are both set as 1 to indicate that there can only be one value for different grams to be extracted. Other settings include the proportion of documents as 0.57, no changes for non-zero data, and no sublinear programming. Moreover, the processed matrix of train set should be transformed to a dense matrix representation so as to remove nonzero terms. “train_predictors” and “test_predictors” are now ready for use in the model. 
-Now we can build the Linear SVC model to conduct logistic regression. As a multi-class classification model, Linear SVC provides a much more efficient implementation to almost linearly scale a large amount of samples and features. 
-Fitting the model to the data we processed above, we can make prediction and submit the final csv file with columns “id” and “cuisine” to Kaggle, which scores us 0.78862. With 78.86% of the cuisines correctly classified, this model in Python is effective in predicting the category of cuisines according to their ingredients, although not an improvement of the best try by the Xgboost package in R language. 
-
-## Summary
-To sum up, I have used three models in either R or Python to classify the cuisine categories in the TEST set. First of all, I tried to construct classification model through decisions tress in R. Since it only recognized the most important and frequently appearing ingredients and predicted through these ingredients, 40.19% of the cuisines in the TEST set were correctly classified. However, this model did go beyond the benchmark and served well as a baseline for further feature creation and model development. Then, based on the same process to extract information and create feature, I added Xgboost package of R in the model and achieved the best score 0.78962 as accuracy. Finally, to check whether Python also work well in classification problem, I attempted to build logistic regression model in Python and got a similar accuracy rate to the Xgboost in R. In conclusion, Xgboost in R and logistic regression model in Python are both effective as classification models to classify the category of cuisines according to ingredients in this case. 
+- The higher flexibility Linear SVC + lemmatization
+- Return a proper word as lemma through vocabulary analysis to eliminate verbose inflectional endings, referring to WordNet
+- Create corpus through “TfidVectorizer”
+- Convert the corpus (train set) to a matrix of TF-IDF features
+  - Set the stop_words as “English” to return the appropriate stop list when coming across a string and “English” is the only supported string value
+  - Lower and upper limits of the range of n-values are both set as 1 to indicate that there can only be one value for different grams to be extracted
+  - Proportion of documents = 0.57
+  - No changes for non-zero data, and no sublinear programming
+- Accuracy: 78.86%
